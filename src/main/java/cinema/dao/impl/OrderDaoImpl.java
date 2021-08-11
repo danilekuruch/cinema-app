@@ -27,7 +27,7 @@ public class OrderDaoImpl implements OrderDao {
             if (transaction != null) {
                 transaction.rollback();
             }
-            throw new DataProcessingException("Can't insert order " + order, e);
+            throw new DataProcessingException("Can't insert order: " + order, e);
         } finally {
             if (session != null) {
                 session.close();
@@ -44,7 +44,7 @@ public class OrderDaoImpl implements OrderDao {
                             + "where o.id = :id", Order.class).setParameter("id", id)
                     .uniqueResultOptional();
         } catch (Exception e) {
-            throw new DataProcessingException("Can't get order with id = " + id, e);
+            throw new DataProcessingException("Can't get order by id: " + id, e);
         }
     }
 
@@ -61,7 +61,7 @@ public class OrderDaoImpl implements OrderDao {
             if (transaction != null) {
                 transaction.rollback();
             }
-            throw new DataProcessingException("Can't update order " + order, e);
+            throw new DataProcessingException("Can't update order: " + order, e);
         } finally {
             if (session != null) {
                 session.close();
@@ -81,7 +81,7 @@ public class OrderDaoImpl implements OrderDao {
                             + "where o.user = :user ", Order.class).setParameter("user", user)
                     .getResultList();
         } catch (Exception e) {
-            throw new DataProcessingException("Can't get history of orders by user " + user, e);
+            throw new DataProcessingException("Can't get history of orders by user: " + user, e);
         }
     }
 }
