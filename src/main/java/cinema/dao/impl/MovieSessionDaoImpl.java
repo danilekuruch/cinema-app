@@ -34,7 +34,7 @@ public class MovieSessionDaoImpl implements MovieSessionDao {
             if (transaction != null) {
                 transaction.rollback();
             }
-            throw new DataProcessingException("Can't insert movie session" + movieSession, e);
+            throw new DataProcessingException("Can't insert movie session: " + movieSession, e);
         } finally {
             if (session != null) {
                 session.close();
@@ -58,7 +58,7 @@ public class MovieSessionDaoImpl implements MovieSessionDao {
             root.fetch("cinemaHall");
             return session.createQuery(criteriaQuery).getResultList();
         } catch (Exception e) {
-            throw new DataProcessingException("Can't get available sessions for movie with id: "
+            throw new DataProcessingException("Can't get available sessions for movie by id: "
                     + movieId + " for date: " + date, e);
         }
     }
