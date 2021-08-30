@@ -1,72 +1,35 @@
 package cinema.dao.impl;
 
+import cinema.dao.AbstractDao;
 import cinema.dao.ShoppingCartDao;
 import cinema.exception.DataProcessingException;
-import cinema.lib.Dao;
 import cinema.model.ShoppingCart;
 import cinema.model.User;
-import cinema.util.HibernateUtil;
 import org.hibernate.Session;
-import org.hibernate.Transaction;
+import org.hibernate.SessionFactory;
+import org.hibernate.query.Query;
+import org.springframework.stereotype.Repository;
 
-@Dao
-public class ShoppingCartDaoImpl implements ShoppingCartDao {
-    @Override
-    public ShoppingCart add(ShoppingCart shoppingCart) {
-        Session session = null;
-        Transaction transaction = null;
-        try {
-            session = HibernateUtil.getSessionFactory().openSession();
-            transaction = session.beginTransaction();
-            session.save(shoppingCart);
-            transaction.commit();
-            return shoppingCart;
-        } catch (Exception e) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
-            throw new DataProcessingException("Can't insert shopping cart: " + shoppingCart, e);
-        } finally {
-            if (session != null) {
-                session.close();
-            }
-        }
+@Repository
+public class ShoppingCartDaoImpl extends AbstractDao<ShoppingCart> implements ShoppingCartDao {
+    public ShoppingCartDaoImpl(SessionFactory factory) {
+        super(factory, ShoppingCart.class);
     }
 
     @Override
     public ShoppingCart getByUser(User user) {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("from ShoppingCart sc "
+        try (Session session = factory.openSession()) {
+            Query<ShoppingCart> getByUser = session.createQuery(
+                    "SELECT DISTINCT sc FROM ShoppingCart sc "
                             + "left join fetch sc.tickets t "
                             + "left join fetch t.movieSession ms "
                             + "left join fetch ms.cinemaHall "
                             + "left join fetch ms.movie "
-                            + "where sc.user = :user", ShoppingCart.class)
-                    .setParameter("user", user)
-                    .uniqueResult();
+                            + "WHERE sc.user = :user", ShoppingCart.class);
+            getByUser.setParameter("user", user);
+            return getByUser.getSingleResult();
         } catch (Exception e) {
-            throw new DataProcessingException("Can't get shopping cart by user: " + user, e);
-        }
-    }
-
-    @Override
-    public void update(ShoppingCart shoppingCart) {
-        Session session = null;
-        Transaction transaction = null;
-        try {
-            session = HibernateUtil.getSessionFactory().openSession();
-            transaction = session.beginTransaction();
-            session.update(shoppingCart);
-            transaction.commit();
-        } catch (Exception e) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
-            throw new DataProcessingException("Can't update shopping cart " + shoppingCart, e);
-        } finally {
-            if (session != null) {
-                session.close();
-            }
+            throw new DataProcessingException("Not found shopping cart for user " + user, e);
         }
     }
 }
